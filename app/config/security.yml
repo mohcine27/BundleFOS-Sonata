@@ -1,0 +1,57 @@
+# To get started with security, check out the documentation:
+# http://symfony.com/doc/current/security.html
+security:
+    encoders:
+        AppBundle\Entity\User: bcrypt
+    
+    role_hierarchy:       
+        ROLE_CLIENT:      ROLE_USER
+        ROLE_USER:        ROLE_USER
+        ROLE_ADMIN:       ROLE_USER
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN]
+
+    providers:
+        fos_userbundle:
+            id: fos_user.user_provider.username_email
+        # database_users:
+            # entity: { class: AppBundle:User, property: username }
+
+    firewalls:
+        secured_area:
+            pattern: ^/(_(profiler|wdt)|css|images|js|login)/
+            anonymous: true
+            form_login:
+                login_path: fos_user_security_login
+                check_path: fos_user_security_check
+            
+        main:
+            pattern: ^/
+            form_login:
+                provider: fos_userbundle
+                csrf_provider: security.csrf.token_manager 
+                default_target_path: /backoffice                
+                login_path: fos_user_security_login
+                use_referer: true
+                use_forward: false
+                # failure_path: /login_failure_redirect
+            logout:                 
+                path: fos_user_security_logout
+                target: fos_user_security_login
+            anonymous: ~          
+            
+            remember_me:
+                key:    %secret%
+                lifetime: 604800
+                path: /
+                domain: ~
+                httponly: true            
+
+    access_control:
+        - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/resetting, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/admin/, role: ROLE_ADMIN}
+        - { path: ^/backoffice/, role: ROLE_ADMIN}
+        
+    access_denied_url: /login
+    
